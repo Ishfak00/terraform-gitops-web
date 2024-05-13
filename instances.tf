@@ -3,15 +3,15 @@ resource "aws_key_pair" "terra_key" {
   public_key = file("terra-key.pub")
 }
 
-resource "aws_instance" "fifth_terraform_instance" {
+resource "aws_instance" "terraform_instance" {
   ami                    = var.AMIS[var.REGION]
   instance_type          = "t2.micro"
   availability_zone      = var.ZONE1
   key_name               = aws_key_pair.terra_key.key_name
   vpc_security_group_ids = ["sg-06447045987c137f2"]
   tags = {
-    Name    = "Fifth-Instance"
-    Project = "Terraform-Exercise3"
+    Name    = "ec2-Instance"
+    Project = "Terraform-Exercise"
   }
 
   provisioner "file" {
