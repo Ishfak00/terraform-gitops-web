@@ -19,4 +19,5 @@ variable "USER" {
   default = "ec2-user"
 }
 
-##
+## First Action
+## Second Action
