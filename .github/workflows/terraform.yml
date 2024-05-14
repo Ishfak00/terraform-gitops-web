@@ -1,0 +1,65 @@
+name: "Terraform-GitOps-Webserver-project"
+on: 
+    push:
+        branches:
+            - main
+            - stage
+        paths:
+            - ./**
+    pull_request:
+        branches:
+            - main
+        paths:
+            - ./**
+
+env:
+# AWS Credentials
+AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+
+# S3 Bucket for Terraform state file
+BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE}}
+AWS_REGION: us-east-1
+
+
+jobs:
+    terraform-gitops-wevserver:
+        name: "Deploy webserver on AWS EC2 instance"
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                shell: bash
+                working-directory: ./
+        steps:
+            - name: Check out repository code
+              uses: actions/checkout@v4
+
+            - name: Setup Terraform
+              uses: hasicorp/setup-terraform@v3
+              with: 
+                terraform_version: "1.8.1"
+
+            - name: Terraform Init
+              id: init
+              run: terraform init -backend-config="bucket=$BUCKET_TF_STATE" 
+            
+            - name: Terraform format
+              id: fmt
+              run: terraform fmt -check
+              continue-on-error: true
+
+            - name: Terraform validate
+              id: validate
+              run: terraform validate -no-color
+
+            - name: Terraform Plan
+              id: plan
+              run: terraform plan -no-color -input=false -out tfplanfile
+              continue-on-error: true
+
+            - name: Terraform Plan Status
+              if: steps.plan.outcome == 'faliure'
+              run: exit 1
+              
+
+
